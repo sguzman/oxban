@@ -26,6 +26,25 @@ pub fn board_page() -> Html {
     let error = use_state(|| None::<String>);
     let ui = use_state(UiState::default);
     let new_column_title = use_state(String::new);
+    let is_light_theme = use_state(|| false);
+
+    {
+        let is_light_theme = is_light_theme.clone();
+        use_effect_with(*is_light_theme, move |is_light| {
+            if let Some(window) = web_sys::window() {
+                if let Some(document) = window.document() {
+                    if let Some(root) = document.document_element() {
+                        if *is_light {
+                            let _ = root.set_attribute("data-theme", "light");
+                        } else {
+                            let _ = root.remove_attribute("data-theme");
+                        }
+                    }
+                }
+            }
+            || ()
+        });
+    }
 
     {
         let boards = boards.clone();
@@ -259,6 +278,15 @@ pub fn board_page() -> Html {
         })
     };
 
+    let on_toggle_theme = {
+        let is_light_theme = is_light_theme.clone();
+        Callback::from(move |_| {
+            let next = !*is_light_theme;
+            tracing::info!(is_light_theme = next, "theme toggled");
+            is_light_theme.set(next);
+        })
+    };
+
     let on_open_card = {
         let ui = ui.clone();
         Callback::from(move |card_id: Uuid| {
@@ -430,6 +458,9 @@ pub fn board_page() -> Html {
               <div class="row" style="flex-wrap: wrap;">
                 <input placeholder="Search cards" value={ui.search.clone()} oninput={on_search} />
                 <input placeholder="New column" value={(*new_column_title).clone()} oninput={on_new_column_input} />
+                <button class="btn" onclick={on_toggle_theme}>
+                  { if *is_light_theme { "Night mode" } else { "Day mode" } }
+                </button>
                 <button class="btn" onclick={on_create_column}>{ "Add column" }</button>
                 <button class="btn primary" onclick={on_create_board.clone()}>{ "New board" }</button>
               </div>
