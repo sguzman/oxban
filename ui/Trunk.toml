@@ -1,0 +1,8 @@
+[build]
+target = "index.html"
+dist = "dist"
+release = false
+
+[serve]
+port = 1420
+open = false

@@ -1,0 +1,28 @@
+:root {
+  --bg: #0c1118;
+  --bg-overlay: rgba(12, 17, 24, 0.82);
+  --panel: #131b25;
+  --panel-muted: #1a2432;
+  --text: #eaf1ff;
+  --muted: #93a6c3;
+  --line: rgba(255, 255, 255, 0.09);
+
+  --accent: #55d6be;
+  --accent-strong: #39bfa5;
+  --danger: #f07186;
+  --warning: #f2d16b;
+
+  --shadow-1: 0 14px 34px rgba(0, 0, 0, 0.32);
+  --shadow-2: 0 24px 64px rgba(0, 0, 0, 0.5);
+  --radius-1: 10px;
+  --radius-2: 16px;
+
+  --s1: 6px;
+  --s2: 10px;
+  --s3: 14px;
+  --s4: 20px;
+  --s5: 28px;
+
+  --font-sans: "Atkinson Hyperlegible", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}

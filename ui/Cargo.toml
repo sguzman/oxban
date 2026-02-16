@@ -1,0 +1,21 @@
+[package]
+name = "oxban-ui"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+chrono = { version = "0.4.43", features = ["serde"] }
+console_error_panic_hook = "0.1.7"
+js-sys = "0.3.85"
+oxban-core = { path = "../crates/oxban-core" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde-wasm-bindgen = "0.6.5"
+tracing = "0.1.44"
+tracing-wasm = "0.2.1"
+uuid = { version = "1.21.0", features = ["serde", "v4", "js"] }
+wasm-bindgen = "0.2.108"
+wasm-bindgen-futures = "0.4.58"
+web-sys = { version = "0.3.85", features = ["Window", "Document", "Element", "HtmlElement", "HtmlInputElement", "HtmlTextAreaElement", "DragEvent", "DataTransfer"] }
+yew = { version = "0.22.0", features = ["csr"] }
+yew-router = "0.19.0"

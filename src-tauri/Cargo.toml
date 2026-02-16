@@ -1,0 +1,25 @@
+[package]
+name = "oxban"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+build = "build.rs"
+
+[build-dependencies]
+tauri-build = "2.5.5"
+ 
+
+[dependencies]
+anyhow = "1.0.101"
+chrono = { version = "0.4.43", features = ["serde"] }
+oxban-core = { path = "../crates/oxban-core" }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid", "migrate"] }
+tauri = "2.10.2"
+tokio = { version = "1.49.0", features = ["rt-multi-thread", "macros", "fs", "sync", "time"] }
+toml = "1.0.1"
+tracing = "0.1.44"
+tracing-appender = "0.2.4"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt", "json"] }
+uuid = { version = "1.21.0", features = ["serde", "v4"] }

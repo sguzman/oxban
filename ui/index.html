@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Oxban</title>
+
+    <link data-trunk rel="css" href="assets/css/tokens.css" />
+    <link data-trunk rel="css" href="assets/css/base.css" />
+    <link data-trunk rel="css" href="assets/css/kanban.css" />
+    <link data-trunk rel="css" href="assets/css/modal.css" />
+
+    <script>
+      window.quackbanInvoke = async (cmd, args) => {
+        if (!window.__TAURI__ || !window.__TAURI__.core || !window.__TAURI__.core.invoke) {
+          throw new Error("Tauri invoke bridge is not available");
+        }
+        return await window.__TAURI__.core.invoke(cmd, args);
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

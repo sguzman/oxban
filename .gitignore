@@ -1,2 +1,4 @@
 /target
-tmp
+/tmp
+/ui/dist
+/ui/.trunk

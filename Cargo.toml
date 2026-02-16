@@ -1,6 +1,11 @@
-[package]
-name = "oxban"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
+[workspace]
+resolver = "2"
+members = [
+  "crates/oxban-core",
+  "src-tauri",
+  "ui",
+]
+default-members = [
+  "crates/oxban-core",
+  "src-tauri",
+]

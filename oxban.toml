@@ -1,0 +1,27 @@
+[app]
+name = "Oxban"
+default_board_name = "My Board"
+seed_default_columns = true
+default_columns = ["To do", "Doing", "Done"]
+
+[ui]
+start_route = "/"
+enable_animations = true
+dense_mode = false
+
+[storage]
+sqlite_filename = "oxban.sqlite3"
+journal_mode = "WAL"
+synchronous = "NORMAL"
+foreign_keys = true
+
+[ordering]
+step = 1000000
+min_gap = 4
+
+[logging]
+level = "info"
+json = false
+write_to_file = true
+log_dirname = "logs"
+max_log_files = 10
