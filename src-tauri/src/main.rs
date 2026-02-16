@@ -43,6 +43,7 @@ fn main() {
             };
 
             app.manage(state);
+            install_signal_handlers(app.handle().clone());
 
             tracing::info!("application setup completed");
             Ok(())
@@ -65,6 +66,49 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn install_signal_handlers(app_handle: tauri::AppHandle) {
+    tauri::async_runtime::spawn(async move {
+        wait_for_shutdown_signal().await;
+        tracing::warn!("received shutdown signal; exiting application");
+        app_handle.exit(0);
+    });
+}
+
+#[cfg(unix)]
+async fn wait_for_shutdown_signal() {
+    use tokio::signal::unix::{SignalKind, signal};
+
+    let mut sigint = match signal(SignalKind::interrupt()) {
+        Ok(stream) => stream,
+        Err(error) => {
+            tracing::error!(%error, "failed to register SIGINT handler; falling back to ctrl_c");
+            let _ = tokio::signal::ctrl_c().await;
+            return;
+        }
+    };
+
+    let mut sigterm = match signal(SignalKind::terminate()) {
+        Ok(stream) => stream,
+        Err(error) => {
+            tracing::error!(%error, "failed to register SIGTERM handler; falling back to ctrl_c");
+            let _ = tokio::signal::ctrl_c().await;
+            return;
+        }
+    };
+
+    tokio::select! {
+        _ = sigint.recv() => {}
+        _ = sigterm.recv() => {}
+    }
+}
+
+#[cfg(not(unix))]
+async fn wait_for_shutdown_signal() {
+    if let Err(error) = tokio::signal::ctrl_c().await {
+        tracing::error!(%error, "failed waiting for ctrl_c signal");
+    }
 }
 
 #[cfg(target_os = "linux")]
