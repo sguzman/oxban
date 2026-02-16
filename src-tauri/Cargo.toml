@@ -6,7 +6,7 @@ license = "MIT"
 build = "build.rs"
 
 [build-dependencies]
-tauri-build = "2.5.5"
+tauri-build = { version = "2.5.5", features = [] }
  
 
 [dependencies]
@@ -16,7 +16,7 @@ oxban-core = { path = "../crates/oxban-core" }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid", "migrate"] }
-tauri = "2.10.2"
+tauri = { version = "2.10.2", features = [] }
 tokio = { version = "1.49.0", features = ["rt-multi-thread", "macros", "fs", "sync", "time"] }
 toml = "1.0.1"
 tracing = "0.1.44"
