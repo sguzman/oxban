@@ -27,6 +27,8 @@ pub fn board_page() -> Html {
     let ui = use_state(UiState::default);
     let new_column_title = use_state(String::new);
     let is_light_theme = use_state(|| false);
+    let rename_board_modal_open = use_state(|| false);
+    let rename_board_input = use_state(String::new);
 
     {
         let is_light_theme = is_light_theme.clone();
@@ -221,12 +223,44 @@ pub fn board_page() -> Html {
         })
     };
 
-    let on_rename_board = {
+    let on_open_rename_board = {
+        let rename_board_modal_open = rename_board_modal_open.clone();
+        let rename_board_input = rename_board_input.clone();
+        let board_state = board_state.clone();
+        Callback::from(move |_| {
+            let current_name = board_state
+                .as_ref()
+                .as_ref()
+                .map(|state| state.board.name.clone())
+                .unwrap_or_else(|| "Board".to_string());
+            rename_board_input.set(current_name);
+            rename_board_modal_open.set(true);
+        })
+    };
+
+    let on_close_rename_board = {
+        let rename_board_modal_open = rename_board_modal_open.clone();
+        Callback::from(move |_| rename_board_modal_open.set(false))
+    };
+
+    let on_rename_board_input = {
+        let rename_board_input = rename_board_input.clone();
+        Callback::from(move |event: InputEvent| {
+            let value = event
+                .target_unchecked_into::<web_sys::HtmlInputElement>()
+                .value();
+            rename_board_input.set(value);
+        })
+    };
+
+    let on_submit_rename_board = {
         let active_board_id = active_board_id.clone();
         let board_state = board_state.clone();
         let reload_active_board = reload_active_board.clone();
         let refresh_boards = refresh_boards.clone();
         let error = error.clone();
+        let rename_board_input = rename_board_input.clone();
+        let rename_board_modal_open = rename_board_modal_open.clone();
         Callback::from(move |_| {
             let Some(board_id) = *active_board_id else {
                 return;
@@ -236,33 +270,24 @@ pub fn board_page() -> Html {
                 .as_ref()
                 .as_ref()
                 .map(|state| state.board.name.clone())
-                .unwrap_or_else(|| "Board".to_string());
-
-            let prompt_result = web_sys::window()
-                .and_then(|window| {
-                    window
-                        .prompt_with_message_and_default("Rename board:", &current_name)
-                        .ok()
-                        .flatten()
-                })
-                .map(|value| value.trim().to_string());
-
-            let Some(name) = prompt_result else {
-                return;
-            };
+                .unwrap_or_default();
+            let name = rename_board_input.trim().to_string();
 
             if name.is_empty() || name == current_name {
+                rename_board_modal_open.set(false);
                 return;
             }
 
             let reload_active_board = reload_active_board.clone();
             let refresh_boards = refresh_boards.clone();
             let error = error.clone();
+            let rename_board_modal_open = rename_board_modal_open.clone();
             spawn_local(async move {
                 let args = RenameBoardArgs { board_id, name };
                 match invoke_args::<(), _>("rename_board", &args).await {
                     Ok(()) => {
                         tracing::info!(%board_id, "renamed board");
+                        rename_board_modal_open.set(false);
                         refresh_boards.emit(());
                         reload_active_board.emit(());
                     }
@@ -568,7 +593,7 @@ pub fn board_page() -> Html {
                   { if *is_light_theme { "Night mode" } else { "Day mode" } }
                 </button>
                 <button class="btn" onclick={on_create_column}>{ "Add column" }</button>
-                <button class="btn" onclick={on_rename_board}>{ "Rename board" }</button>
+                <button class="btn" onclick={on_open_rename_board}>{ "Rename board" }</button>
                 <button class="btn danger" onclick={on_delete_board.clone()}>{ "Delete board" }</button>
                 <button class="btn primary" onclick={on_create_board.clone()}>{ "New board" }</button>
               </div>
@@ -629,6 +654,31 @@ pub fn board_page() -> Html {
         }
     };
 
+    let rename_board_modal = if *rename_board_modal_open {
+        html! {
+          <div class="modal-backdrop" onclick={on_close_rename_board.clone()}>
+            <div class="modal" onclick={Callback::from(|event: MouseEvent| event.stop_propagation())}>
+              <div class="modal-header">
+                <h2>{ "Rename board" }</h2>
+                <button class="btn" onclick={on_close_rename_board.clone()}>{ "Close" }</button>
+              </div>
+              <div class="modal-body">
+                <label class="col">
+                  <span class="pill">{ "Board name" }</span>
+                  <input value={(*rename_board_input).clone()} oninput={on_rename_board_input} />
+                </label>
+                <div class="row" style="justify-content: flex-end;">
+                  <button class="btn" onclick={on_close_rename_board}>{ "Cancel" }</button>
+                  <button class="btn primary" onclick={on_submit_rename_board}>{ "Save" }</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+    } else {
+        html! {}
+    };
+
     html! {
       <div class="shell">
         <aside class="sidebar">
@@ -677,6 +727,7 @@ pub fn board_page() -> Html {
         <main class="main">
           { content }
           { modal }
+          { rename_board_modal }
         </main>
       </div>
     }
