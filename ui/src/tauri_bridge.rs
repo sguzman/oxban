@@ -19,9 +19,17 @@ pub async fn invoke<R: DeserializeOwned, A: Serialize>(
     let promise = quackban_invoke(command, js_args);
     let value = JsFuture::from(promise)
         .await
-        .map_err(|error| format!("js invoke error: {error:?}"))?;
+        .map_err(|error| {
+            let message = format!("js invoke error: {error:?}");
+            tracing::error!(command, %message, "tauri invoke promise rejected");
+            message
+        })?;
 
-    serde_wasm_bindgen::from_value(value).map_err(|error| error.to_string())
+    serde_wasm_bindgen::from_value(value).map_err(|error| {
+        let message = error.to_string();
+        tracing::error!(command, %message, "failed to deserialize tauri response");
+        message
+    })
 }
 
 pub async fn invoke_args<R: DeserializeOwned, A: Serialize>(

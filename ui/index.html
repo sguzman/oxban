@@ -12,10 +12,27 @@
 
     <script>
       window.quackbanInvoke = async (cmd, args) => {
-        if (!window.__TAURI__ || !window.__TAURI__.core || !window.__TAURI__.core.invoke) {
-          throw new Error("Tauri invoke bridge is not available");
+        const internalInvoke = window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke;
+        if (typeof internalInvoke === "function") {
+          return await internalInvoke(cmd, args);
         }
-        return await window.__TAURI__.core.invoke(cmd, args);
+
+        const globalInvoke =
+          window.__TAURI__ &&
+          window.__TAURI__.core &&
+          window.__TAURI__.core.invoke;
+        if (typeof globalInvoke === "function") {
+          return await globalInvoke(cmd, args);
+        }
+
+        const message = "Tauri invoke bridge is not available";
+        console.error(message, {
+          hasInternals: !!window.__TAURI_INTERNALS__,
+          hasGlobal: !!window.__TAURI__,
+          hasGlobalCore: !!(window.__TAURI__ && window.__TAURI__.core),
+          location: window.location && window.location.href
+        });
+        throw new Error(message);
       };
     </script>
   </head>

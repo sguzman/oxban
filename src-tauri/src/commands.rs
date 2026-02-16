@@ -18,6 +18,7 @@ pub struct AppState {
 }
 
 fn to_string_error(error: anyhow::Error) -> String {
+    tracing::error!(error = ?error, "tauri command failed");
     error.to_string()
 }
 
