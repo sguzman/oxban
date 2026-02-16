@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use oxban_core::{
     BoardState, BoardSummary, CreateBoardArgs, CreateCardArgs, CreateColumnArgs, DeleteCardArgs,
-    DeleteColumnArgs, DeleteBoardArgs, GetBoardArgs, MoveCardArgs, RenameColumnArgs, ReorderColumnArgs,
-    UpdateCardArgs,
+    DeleteColumnArgs, DeleteBoardArgs, GetBoardArgs, MoveCardArgs, RenameBoardArgs,
+    RenameColumnArgs, ReorderColumnArgs, UpdateCardArgs,
 };
 use tauri::State;
 use tracing::instrument;
@@ -56,6 +56,19 @@ pub async fn delete_board(
     state
         .db
         .delete_board(args.board_id)
+        .await
+        .map_err(to_string_error)
+}
+
+#[tauri::command]
+#[instrument(skip(state, args), fields(board_id = %args.board_id, name = %args.name))]
+pub async fn rename_board(
+    state: State<'_, AppState>,
+    args: RenameBoardArgs,
+) -> Result<(), String> {
+    state
+        .db
+        .rename_board(args.board_id, args.name)
         .await
         .map_err(to_string_error)
 }

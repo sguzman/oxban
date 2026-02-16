@@ -52,6 +52,7 @@ fn main() {
             commands::list_boards,
             commands::create_board,
             commands::delete_board,
+            commands::rename_board,
             commands::get_board,
             commands::create_column,
             commands::rename_column,

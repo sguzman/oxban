@@ -1,6 +1,6 @@
 use oxban_core::{
     BoardState, BoardSummary, Card, CreateBoardArgs, CreateCardArgs, CreateColumnArgs,
-    DeleteBoardArgs, DeleteCardArgs, GetBoardArgs, MoveCardArgs, UpdateCardArgs,
+    DeleteBoardArgs, DeleteCardArgs, GetBoardArgs, MoveCardArgs, RenameBoardArgs, UpdateCardArgs,
 };
 use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
@@ -216,6 +216,60 @@ pub fn board_page() -> Html {
                         }
                     }
                     Err(message) => error.set(Some(message)),
+                }
+            });
+        })
+    };
+
+    let on_rename_board = {
+        let active_board_id = active_board_id.clone();
+        let board_state = board_state.clone();
+        let reload_active_board = reload_active_board.clone();
+        let refresh_boards = refresh_boards.clone();
+        let error = error.clone();
+        Callback::from(move |_| {
+            let Some(board_id) = *active_board_id else {
+                return;
+            };
+
+            let current_name = board_state
+                .as_ref()
+                .as_ref()
+                .map(|state| state.board.name.clone())
+                .unwrap_or_else(|| "Board".to_string());
+
+            let prompt_result = web_sys::window()
+                .and_then(|window| {
+                    window
+                        .prompt_with_message_and_default("Rename board:", &current_name)
+                        .ok()
+                        .flatten()
+                })
+                .map(|value| value.trim().to_string());
+
+            let Some(name) = prompt_result else {
+                return;
+            };
+
+            if name.is_empty() || name == current_name {
+                return;
+            }
+
+            let reload_active_board = reload_active_board.clone();
+            let refresh_boards = refresh_boards.clone();
+            let error = error.clone();
+            spawn_local(async move {
+                let args = RenameBoardArgs { board_id, name };
+                match invoke_args::<(), _>("rename_board", &args).await {
+                    Ok(()) => {
+                        tracing::info!(%board_id, "renamed board");
+                        refresh_boards.emit(());
+                        reload_active_board.emit(());
+                    }
+                    Err(message) => {
+                        tracing::error!(%board_id, %message, "rename_board failed");
+                        error.set(Some(message));
+                    }
                 }
             });
         })
@@ -514,6 +568,7 @@ pub fn board_page() -> Html {
                   { if *is_light_theme { "Night mode" } else { "Day mode" } }
                 </button>
                 <button class="btn" onclick={on_create_column}>{ "Add column" }</button>
+                <button class="btn" onclick={on_rename_board}>{ "Rename board" }</button>
                 <button class="btn danger" onclick={on_delete_board.clone()}>{ "Delete board" }</button>
                 <button class="btn primary" onclick={on_create_board.clone()}>{ "New board" }</button>
               </div>

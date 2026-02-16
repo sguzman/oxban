@@ -229,6 +229,23 @@ impl Db {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self), fields(board_id = %board_id, name = %name))]
+    pub async fn rename_board(&self, board_id: Uuid, name: String) -> anyhow::Result<()> {
+        let rows = sqlx::query("UPDATE boards SET name = ?, updated_at = ? WHERE id = ?")
+            .bind(name)
+            .bind(now_rfc3339())
+            .bind(board_id.to_string())
+            .execute(&self.pool)
+            .await?;
+
+        if rows.rows_affected() == 0 {
+            bail!("board {board_id} was not found");
+        }
+
+        tracing::info!(board_id = %board_id, "renamed board");
+        Ok(())
+    }
+
     #[tracing::instrument(skip(self, ordering), fields(board_id = %board_id, name = %name))]
     pub async fn create_column(
         &self,
