@@ -14,6 +14,8 @@ use commands::AppState;
 use db::Db;
 
 fn main() {
+    configure_wayland_runtime_defaults();
+
     tauri::Builder::default()
         .setup(|app| {
             let config_dir = app
@@ -62,3 +64,32 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(target_os = "linux")]
+fn configure_wayland_runtime_defaults() {
+    let is_wayland = std::env::var_os("WAYLAND_DISPLAY").is_some()
+        || std::env::var("XDG_SESSION_TYPE")
+            .map(|session| session.eq_ignore_ascii_case("wayland"))
+            .unwrap_or(false);
+
+    if !is_wayland {
+        return;
+    }
+
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        // Safety: this runs at process startup before worker threads are spawned.
+        unsafe {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+    }
+
+    if std::env::var_os("WEBKIT_DISABLE_COMPOSITING_MODE").is_none() {
+        // Safety: this runs at process startup before worker threads are spawned.
+        unsafe {
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn configure_wayland_runtime_defaults() {}
