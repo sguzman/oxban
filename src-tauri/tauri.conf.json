@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.example.oxban",
   "build": {
-    "beforeDevCommand": "trunk serve --config ../ui/Trunk.toml",
+    "beforeDevCommand": "bash scripts/trunk-wrapper.sh serve",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "trunk build --config ../ui/Trunk.toml",
+    "beforeBuildCommand": "bash scripts/trunk-wrapper.sh build",
     "frontendDist": "../ui/dist"
   },
   "app": {
