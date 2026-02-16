@@ -1,9 +1,13 @@
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use anyhow::{Context, bail};
 use chrono::{DateTime, Utc};
 use oxban_core::{Board, BoardState, BoardSummary, Card, Column};
-use sqlx::{Row, SqlitePool, sqlite::SqlitePoolOptions};
+use sqlx::{
+    Row, SqlitePool,
+    sqlite::{SqliteConnectOptions, SqlitePoolOptions},
+};
 use uuid::Uuid;
 
 use crate::{
@@ -26,9 +30,13 @@ impl Db {
         let db_url = format!("sqlite://{}", db_path.display());
         tracing::info!(%db_url, "opening sqlite database");
 
+        let connect_options = SqliteConnectOptions::from_str(&db_url)?
+            .create_if_missing(true)
+            .foreign_keys(cfg.storage.foreign_keys);
+
         let pool = SqlitePoolOptions::new()
             .max_connections(8)
-            .connect(&db_url)
+            .connect_with(connect_options)
             .await
             .with_context(|| format!("failed to connect to sqlite database at {db_url}"))?;
 
