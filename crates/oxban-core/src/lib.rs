@@ -60,6 +60,11 @@ pub struct CreateBoardArgs {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DeleteBoardArgs {
+    pub board_id: Uuid,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CreateColumnArgs {
     pub board_id: Uuid,
     pub name: String,

@@ -218,6 +218,17 @@ impl Db {
         Ok(board_id)
     }
 
+    #[tracing::instrument(skip(self), fields(board_id = %board_id))]
+    pub async fn delete_board(&self, board_id: Uuid) -> anyhow::Result<()> {
+        sqlx::query("DELETE FROM boards WHERE id = ?")
+            .bind(board_id.to_string())
+            .execute(&self.pool)
+            .await?;
+
+        tracing::info!(board_id = %board_id, "deleted board");
+        Ok(())
+    }
+
     #[tracing::instrument(skip(self, ordering), fields(board_id = %board_id, name = %name))]
     pub async fn create_column(
         &self,

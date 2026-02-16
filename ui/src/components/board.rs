@@ -1,6 +1,6 @@
 use oxban_core::{
     BoardState, BoardSummary, Card, CreateBoardArgs, CreateCardArgs, CreateColumnArgs,
-    DeleteCardArgs, GetBoardArgs, MoveCardArgs, UpdateCardArgs,
+    DeleteBoardArgs, DeleteCardArgs, GetBoardArgs, MoveCardArgs, UpdateCardArgs,
 };
 use uuid::Uuid;
 use wasm_bindgen_futures::spawn_local;
@@ -216,6 +216,58 @@ pub fn board_page() -> Html {
                         }
                     }
                     Err(message) => error.set(Some(message)),
+                }
+            });
+        })
+    };
+
+    let on_delete_board = {
+        let active_board_id = active_board_id.clone();
+        let boards = boards.clone();
+        let board_state = board_state.clone();
+        let navigator = navigator.clone();
+        let error = error.clone();
+        Callback::from(move |_| {
+            let Some(board_id) = *active_board_id else {
+                return;
+            };
+
+            let boards = boards.clone();
+            let board_state = board_state.clone();
+            let active_board_id = active_board_id.clone();
+            let navigator = navigator.clone();
+            let error = error.clone();
+
+            spawn_local(async move {
+                tracing::warn!(%board_id, "deleting board");
+                let args = DeleteBoardArgs { board_id };
+                if let Err(message) = invoke_args::<(), _>("delete_board", &args).await {
+                    tracing::error!(%board_id, %message, "delete_board failed");
+                    error.set(Some(message));
+                    return;
+                }
+
+                match invoke_no_args::<Vec<BoardSummary>>("list_boards").await {
+                    Ok(found_boards) => {
+                        let next_board_id = found_boards.first().map(|board| board.id);
+                        boards.set(found_boards);
+                        active_board_id.set(next_board_id);
+                        board_state.set(None);
+
+                        if let Some(nav) = navigator {
+                            if let Some(next_id) = next_board_id {
+                                nav.push(&Route::Board {
+                                    id: next_id.to_string(),
+                                });
+                            } else {
+                                nav.push(&Route::Home);
+                            }
+                        }
+                    }
+                    Err(message) => {
+                        tracing::error!(%message, "failed to refresh boards after delete");
+                        error.set(Some(message));
+                    }
                 }
             });
         })
@@ -462,6 +514,7 @@ pub fn board_page() -> Html {
                   { if *is_light_theme { "Night mode" } else { "Day mode" } }
                 </button>
                 <button class="btn" onclick={on_create_column}>{ "Add column" }</button>
+                <button class="btn danger" onclick={on_delete_board.clone()}>{ "Delete board" }</button>
                 <button class="btn primary" onclick={on_create_board.clone()}>{ "New board" }</button>
               </div>
             </div>

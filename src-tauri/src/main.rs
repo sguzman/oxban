@@ -51,6 +51,7 @@ fn main() {
             commands::get_effective_config,
             commands::list_boards,
             commands::create_board,
+            commands::delete_board,
             commands::get_board,
             commands::create_column,
             commands::rename_column,
