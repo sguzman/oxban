@@ -1,101 +1,56 @@
 # Oxban
 
-Oxban is a local-first Kanban desktop app scaffold for experimenting with:
+Oxban is a local-first Kanban desktop app scaffold built from a Rust core, a Tauri shell, and a Yew frontend.
 
-- Rust backend logic and persistence
-- Tauri desktop shell
-- Yew (WASM) frontend
-- Plain CSS styling
-- End-to-end `tracing` instrumentation
+## Intent
 
-## Features in this scaffold
+Use a small Kanban product surface to explore desktop architecture concerns such as persistence, command boundaries, local-first state, and end-to-end tracing across backend and frontend.
 
-- Multi-board Kanban workflow
-- Column and card creation
-- Card editing modal (title, description, tags, priority)
-- Card drag/drop between columns
-- Search/filter by text and tags
-- SQLite persistence with migrations
-- Config file bootstrap (`oxban.toml`)
-- Structured tracing logs in backend and frontend
+## Ambition
 
-## Repository layout
+The current repo looks like a scaffold with room to grow into a fuller task-board application, but its present value is also architectural: proving a Rust-first desktop stack with clear module boundaries.
 
-- `crates/oxban-core`: shared domain models and command argument types
-- `src-tauri`: Tauri backend, command handlers, DB layer, migrations, tracing setup
-- `ui`: Yew app and CSS assets
-- `oxban.toml`: sample runtime config copied into app config dir on first launch
+## Current Status
 
-## Prerequisites
+Multiple-board workflows, persistence, migrations, search/filtering, and drag/drop scaffolding already exist. The README and code both present it as an experimental but functioning desktop app.
 
-- Rust stable (`rustup`)
-- `trunk` for frontend builds
-- `tauri-cli` for running desktop dev mode
-- Platform dependencies required by Tauri/WebKit (Linux/macOS/Windows specific)
+## Core Capabilities Or Focus Areas
 
-### Install helpers
+- Rust domain/core crate shared across the app.
+- Tauri backend with SQLite persistence and migrations.
+- Yew frontend with board, column, and card workflows.
+- Config bootstrap and tracing/logging support.
+- Desktop-oriented local-first architecture.
 
-```bash
-cargo install trunk
-cargo install tauri-cli
-```
+## Project Layout
 
-## Development
+- `crates/oxban-core/`: shared domain models and command argument types used across app layers.
+- `src-tauri/`: desktop backend, command handlers, storage layer, and migrations.
+- `ui/`: Yew frontend, styling, and browser-side application code.
+- `crates/`: workspace member crates grouped by subsystem.
+- `scripts/`: helper scripts for development, validation, or release workflows.
+- `Cargo.toml`: crate or workspace manifest and the first place to check for package structure.
 
-From repo root:
+## Setup And Requirements
 
-```bash
-cargo tauri dev --manifest-path src-tauri/Cargo.toml
-```
+- Rust toolchain.
+- Tauri platform prerequisites.
+- `trunk` and `tauri-cli` for frontend and desktop development.
 
-This runs:
-
-- `trunk serve --config ../ui/Trunk.toml`
-- Tauri backend from `src-tauri`
-
-## Build checks
-
-Backend and core check:
+## Build / Run / Test Commands
 
 ```bash
 cargo check --workspace
-```
-
-UI check for wasm target:
-
-```bash
-rustup target add wasm32-unknown-unknown
 cargo check -p oxban-ui --target wasm32-unknown-unknown
+cargo tauri dev --manifest-path src-tauri/Cargo.toml
 ```
 
-## Logging
+## Notes, Limitations, Or Known Gaps
 
-### Backend (`src-tauri`)
+- This is still framed as a scaffold, so polish and edge-case UX are not the main story yet.
+- Desktop/frontend dependencies matter here more than in pure CLI projects.
 
-- Tracing is initialized from config (`logging.level`, file logging toggle)
-- Command handlers and DB operations are instrumented with spans
-- SQLite setup/migrations and mutation paths emit diagnostic logs
+## Next Steps Or Roadmap Hints
 
-### Frontend (`ui`)
-
-- `console_error_panic_hook` captures panic details
-- `tracing-wasm` routes tracing events to browser devtools console
-- UI actions and command calls emit debug/info logs
-
-## Runtime configuration
-
-On first launch, Oxban writes `oxban.toml` to the app config directory if missing.
-
-Key sections:
-
-- `[storage]`: sqlite file and pragma options
-- `[ordering]`: gapped-position strategy
-- `[logging]`: level, file output directory
-
-## Next improvements
-
-- Drag/drop insertion between cards (not only drop-to-end)
-- Undo/redo action history
-- Board import/export JSON
-- Activity log timeline
-- Rule engine for automations
+- Strengthen board editing ergonomics and local-first sync/export semantics.
+- Keep the boundary between `oxban-core`, Tauri commands, and Yew UI clean as features grow.
